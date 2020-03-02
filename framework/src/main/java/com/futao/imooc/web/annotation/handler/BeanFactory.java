@@ -17,11 +17,35 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BeanFactory {
 
+    /**
+     * 防止通过反序列化来实例化对象
+     *
+     * @return
+     */
+    private Object readResolve() {
+        return BeanFactoryHolderClass.BEAN_FACTORY_HOLDER;
+    }
+
+    /**
+     * 防止通过new和反射来实例化对象
+     */
+    private BeanFactory() {
+        throw new RuntimeException("不允许实例化该对象，请使用BeanFactory.getInstance()的方式获取实例");
+    }
+
+    private static final class BeanFactoryHolderClass {
+        private static final BeanFactory BEAN_FACTORY_HOLDER = new BeanFactory();
+    }
+
+    public static BeanFactory getInstance() {
+        return BeanFactoryHolderClass.BEAN_FACTORY_HOLDER;
+    }
+
 
     /**
      * 容器，存放初始化好的Bean
      */
-    private static final Map<Class<?>, Object> BEAN_CACHE = new HashMap<>();
+    private static final Map<Class<?>, Object> BEAN_CONTAINER = new HashMap<>();
 
     /**
      * 从容器中获取Bean
@@ -30,7 +54,7 @@ public class BeanFactory {
      * @return
      */
     public static Object getBean(Class<?> clazz) {
-        return BEAN_CACHE.get(clazz);
+        return BEAN_CONTAINER.get(clazz);
     }
 
     public static void initBean(Set<Class<?>> classes) {
@@ -57,7 +81,7 @@ public class BeanFactory {
                         }
                     }
                     log.info("加载Bean[{}]", aClass.getName());
-                    BEAN_CACHE.put(aClass, instance);
+                    BEAN_CONTAINER.put(aClass, instance);
                     classSet.remove(aClass);
                 } catch (InstantiationException | IllegalAccessException e) {
                     e.printStackTrace();
