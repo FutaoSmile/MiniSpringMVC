@@ -1,5 +1,6 @@
 package com.futao.imooc.biz.controller;
 
+import com.futao.imooc.biz.service.S1Service;
 import com.futao.imooc.biz.service.SalaryService;
 import com.futao.imooc.web.annotation.Autowired;
 import com.futao.imooc.web.annotation.Controller;
@@ -22,6 +23,9 @@ public class SalaryController {
     @Autowired
     private SalaryService salaryService;
 
+    @Autowired
+    private S1Service s1Service;
+
     @RequestMapping("/getSalary.json")
     public int getSalary(
             @RequestParam("name")
@@ -30,6 +34,7 @@ public class SalaryController {
                     String experience) {
 
         log.info("{},{}", name, experience);
+        System.out.println(s1Service.hashCode());
         return salaryService.calculateSalary();
     }
 

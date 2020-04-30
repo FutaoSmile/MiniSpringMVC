@@ -30,7 +30,9 @@ public class BeanFactory {
      * 防止通过new和反射来实例化对象
      */
     private BeanFactory() {
-        throw new RuntimeException("不允许实例化该对象，请使用BeanFactory.getInstance()的方式获取实例");
+        if (BeanFactoryHolderClass.BEAN_FACTORY_HOLDER != null) {
+            throw new RuntimeException("不允许实例化该对象，请使用BeanFactory.getInstance()的方式获取实例");
+        }
     }
 
     private static final class BeanFactoryHolderClass {
@@ -91,6 +93,36 @@ public class BeanFactory {
                 throw new RuntimeException("发生了循环依赖");
             }
         }
+    }
+
+    public static void initBeanWithoutFieldInject(Set<Class<?>> classes) {
+        Set<Class<?>> classSet = BeanFactory.filterClassNeed2Bean(classes);
+        for (Class<?> aClass : classSet) {
+            try {
+                Object o = aClass.newInstance();
+
+                BEAN_CONTAINER.put(aClass, o);
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+        }
+    }
+
+    public static void initBeanFieldInject() {
+        BEAN_CONTAINER.forEach((k, v) -> {
+            for (Field field : k.getDeclaredFields()) {
+                if (field.isAnnotationPresent(Autowired.class)) {
+                    try {
+                        field.setAccessible(true);
+                        field.set(v, BEAN_CONTAINER.get(field.getType()));
+                        log.info("field inject. class:{},field:{}", k.getName(), field.getName());
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     private static Set<Class<?>> filterClassNeed2Bean(Set<Class<?>> classes) {

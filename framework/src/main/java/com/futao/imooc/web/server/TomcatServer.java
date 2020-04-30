@@ -52,7 +52,9 @@ public class TomcatServer {
 
         RequestMappingHandler.initRequestMapping(classes);
 
-        BeanFactory.initBean(classes);
+//        BeanFactory.initBean(classes);
+        BeanFactory.initBeanWithoutFieldInject(classes);
+        BeanFactory.initBeanFieldInject();
 
         tomcat.getServer().await();
 
